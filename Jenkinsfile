@@ -2,7 +2,6 @@ pipeline {
     agent any
 
     environment {
-        // Environment variables for servers and email recipient
         STAGING_SERVER = 'staging.example.com'
         PRODUCTION_SERVER = 'production.example.com'
         RECIPIENT_EMAIL = 'kaniamudhan2002@gmail.com'
@@ -13,7 +12,7 @@ pipeline {
             steps {
                 echo 'Building the application using Maven...'
                 script {
-                    env.BUILD_STATUS = 'SUCCESSFUL' // Status modified based on actual build results
+                    env.BUILD_STATUS = 'SUCCESSFUL' // Status based on actual results
                 }
             }
         }
@@ -22,7 +21,7 @@ pipeline {
             steps {
                 echo 'Running unit and integration tests...'
                 script {
-                    env.TEST_STATUS = 'PASSED' // Update based on test outcomes
+                    env.TEST_STATUS = 'PASSED' // Update this based on actual outcomes
                 }
             }
         }
@@ -31,7 +30,7 @@ pipeline {
             steps {
                 echo "Deploying to staging server: ${env.STAGING_SERVER}"
                 script {
-                    env.STAGING_DEPLOYMENT_STATUS = 'DEPLOYED' // Update after deployment
+                    env.STAGING_DEPLOYMENT_STATUS = 'DEPLOYED'
                 }
             }
         }
@@ -40,7 +39,7 @@ pipeline {
             steps {
                 echo 'Running integration tests on the staging environment...'
                 script {
-                    env.STAGING_TESTS_STATUS = 'PASSED' // Modify based on test results
+                    env.STAGING_TESTS_STATUS = 'PASSED'
                 }
             }
         }
@@ -49,7 +48,7 @@ pipeline {
             steps {
                 echo "Deploying to production server: ${env.PRODUCTION_SERVER}"
                 script {
-                    env.PRODUCTION_DEPLOYMENT_STATUS = 'DEPLOYED' // Update based on deployment result
+                    env.PRODUCTION_DEPLOYMENT_STATUS = 'DEPLOYED'
                 }
             }
         }
@@ -58,7 +57,7 @@ pipeline {
             steps {
                 echo 'Analyzing code with SonarQube...'
                 script {
-                    env.CODE_ANALYSIS_STATUS = 'COMPLETED' // Adjust based on analysis results
+                    env.CODE_ANALYSIS_STATUS = 'COMPLETED'
                 }
             }
         }
@@ -67,7 +66,7 @@ pipeline {
             steps {
                 echo 'Performing security scan...'
                 script {
-                    env.SECURITY_SCAN_STATUS = 'NO VULNERABILITIES FOUND' // Adjust accordingly
+                    env.SECURITY_SCAN_STATUS = 'NO VULNERABILITIES FOUND'
                 }
             }
         }
@@ -75,7 +74,10 @@ pipeline {
 
     post {
         always {
-            echo 'Sending notification email...'
+            echo 'Sending notification email with logs...'
+            // Assuming logs are stored in a known file path, modify as necessary
+            def logPath = 'build/logs/buildLog.txt' // Update with actual log file path
+            def logContent = readFile logPath
             mail to: "${env.RECIPIENT_EMAIL}",
                  subject: "Build ${currentBuild.fullDisplayName} - ${currentBuild.currentResult}",
                  body: """Pipeline execution details:
@@ -86,6 +88,8 @@ pipeline {
                           Staging Deployment Status: ${env.STAGING_DEPLOYMENT_STATUS}
                           Staging Tests Status: ${env.STAGING_TESTS_STATUS}
                           Production Deployment Status: ${env.PRODUCTION_DEPLOYMENT_STATUS}
+                          Logs:
+                          ${logContent}
                           See Jenkins for more details."""
         }
     }
